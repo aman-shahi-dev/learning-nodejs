@@ -8,6 +8,16 @@ const PORT = 8080;
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 
+app.use((req, res, next) => {
+  fs.appendFile(
+    "log.txt",
+    `${Date.now()}: ${req.ip}: ${req.method}: ${req.path}\n`,
+    (err, data) => {
+      next();
+    },
+  );
+});
+
 // ROUTES
 app.get("/users", (req, res) => {
   const html = `
@@ -20,6 +30,8 @@ app.get("/users", (req, res) => {
 
 // REST API
 app.get("/api/users", (req, res) => {
+  console.log(req.headers);
+  res.setHeader("X-MeraName", "Aman");
   return res.json(users);
 });
 
@@ -29,7 +41,7 @@ app
     const id = Number(req.params.id);
     const user = users.find((user) => user.id === id);
     if (!user) {
-      return res.json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
     return res.json(user);
   })
@@ -72,12 +84,22 @@ app
 
 app.post("/api/users", (req, res) => {
   const body = req.body;
+  if (
+    !body ||
+    !body.first_name ||
+    !body.email ||
+    !body.gender ||
+    !body.job_title ||
+    !body.last_name
+  ) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
   users.push({ ...body, id: users.length + 1 });
   fs.writeFile("./MOCK_DATA.json", JSON.stringify(users), (err, data) => {
     if (err) {
       return res.json("error creating user");
     }
-    return res.json({ status: "success ✅", id: users.length });
+    return res.status(201).json({ status: "success ✅", id: users.length });
   });
 });
 
