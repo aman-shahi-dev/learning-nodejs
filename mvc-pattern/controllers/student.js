@@ -31,7 +31,30 @@ async function handleCreateNewStudentEntry(req, res) {
   });
 }
 
+async function handleUpdateStudentEntry(req, res) {
+  const { name } = req.body;
+  const user = await Student.findByIdAndUpdate(
+    req.params.id,
+    { name: name },
+    { new: true },
+  );
+
+  return res.status(200).json({
+    message: "user updated succssfully",
+    user,
+  });
+}
+
+async function handleDeleteStudentEntry(req, res) {
+  await Student.findByIdAndDelete(req.params.id);
+  return res.status(200).json({
+    message: "user deleted successfully",
+  });
+}
+
 module.exports = {
   handleGetAllStudents,
   handleCreateNewStudentEntry,
+  handleUpdateStudentEntry,
+  handleDeleteStudentEntry,
 };
